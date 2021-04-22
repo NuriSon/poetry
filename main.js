@@ -3,7 +3,7 @@ var fs = require("fs");
 var url = require("url");
 var qs = require('querystring');
 
-function templateHTML(poet, list, body, control) {
+function templateHTML(poet, list, body) {
   return `<!doctype html>
   <html>
   <head>
@@ -13,7 +13,7 @@ function templateHTML(poet, list, body, control) {
   <body>
     <h1><a href="/">POETRY</a></h1>
     ${list}
-   ${control}
+    <a href="/create">create</a>
     ${body}
   </body>
   </html>
@@ -38,16 +38,14 @@ var app = http.createServer(function (request, response) {
   if (pathname === "/") {
     if (queryData.id === undefined) {
       fs.readdir("./description", function (error, filelist) {
-        var poet = "Welcome";
+        var poet = "Hi";
         var description = "You can write your own poem";
         var list = templateList(filelist);
         var template = templateHTML(
           poet,
           list,
           `<h1>${poet}</h1>
-          ${description}`,
-          `<a href="/create">create</a>`
-        );
+          ${description}`);
         response.writeHead(200);
         response.end(template);
       });
@@ -58,12 +56,12 @@ var app = http.createServer(function (request, response) {
           `description/${queryData.id}`,
           `utf8`,
           function (err, description) {
-            poet = queryData.id;
+            var poet = queryData.id;
             var list = templateList(filelist);
             var template = templateHTML(
               poet,
               list,
-               `<h1>${poet}</h1>${description}`, ``
+               `<h1>${poet}</h1>${description}`
               
             );
             response.writeHead(200);
@@ -76,22 +74,20 @@ var app = http.createServer(function (request, response) {
 
   } else if(pathname === '/create'){
     fs.readdir("./description", function (error, filelist) {
-      var poet = "Welcome";
-      var description = "This website is about poetry";
-      
+      var poet = "Hi";
       var list = templateList(filelist);
       var template = templateHTML(
         poet,
         list,
         `
-        <form action="/create_process" method="post">
+        <form action="http://localhost:3000/create_process" method="post">
         <p><input type="text" name="name" placeholder="name"></p>
         <p><textarea name="description" placeholder="poem"></textarea>
         </p>
         <p><input type="submit">
         </P>
         </form>
-        `, ''
+        `
       );
       response.writeHead(200);
       response.end(template);
@@ -106,7 +102,7 @@ var app = http.createServer(function (request, response) {
       var post = qs.parse(body);
       var name = post.name;
       var description = post.description;
-      fs.writeFile(`data/${name}`, description, 'utf8', 
+      fs.writeFile(`description/${name}`, description, 'utf8', 
       function(err){
         response.writeHead(302, {Location: `/?id=${name}`});
         response.end();
